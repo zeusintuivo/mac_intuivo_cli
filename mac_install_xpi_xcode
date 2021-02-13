@@ -1,0 +1,62 @@
+#!/bin/bash
+# 
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+# REF: http://stackoverflow.com/questions/37812664/end-of-central-directory-signature-not-found-when-installing-xcode-8-beta-xip
+
+pkgutil --check-signature Xcode_8_beta.xip
+The output should be something like this:
+
+    Package "Xcode_8_beta.xip":
+       Status: signed Apple Software
+       Certificate Chain:
+        1. Software Update
+           SHA1 fingerprint: 1E 34 E3 91 C6 44 37 DD 24 BE 57 B1 66 7B 2F DA 09 76 E1 FD
+           -----------------------------------------------------------------------------
+        2. Apple Software Update Certification Authority
+           SHA1 fingerprint: FA 02 79 0F CE 9D 93 00 89 C8 C2 51 0B BC 50 B4 85 8E 6F BF
+           -----------------------------------------------------------------------------
+        3. Apple Root CA
+           SHA1 fingerprint: 61 1E 5B 66 2C 59 3A 08 FF 58 D1 4A E2 24 52 D1 98 DF 6C 60
+If that signature isn't signed by an Apple Root CA that is in your Keychain, you should probably stop right there. If all is good so far, you can then run the following commands:
+
+xar -xf Xcode_8_beta.xip
+sudo tar zxvf Content
+shareedit
+edited Jun 16 at 11:19
+answered Jun 16 at 10:56
+
+FredericJacobs
+588116
+2   
+Archive Util was the only solution that worked for me. thanks! – gutte Jun 20 at 8:01
+19    
+Can't untar. Getting error tar: Unrecognized archive format. Unable to extrac in GUI too. I'm running Yosemite. – ReDetection Jul 8 at 16:18
+4   
+Can't untar. Getting error tar: Unrecognized archive format. Unable to extrac in GUI too. I'm running El Captain 10.11.5. – imti Jul 25 at 10:18
+1   
+I'm getting tar: Unrecognized archive format too! – Bechir Aug 18 at 11:26
+1   
+Archive Utility seems to be the only thing that works. You can kick it off with the command line using osascript -e "tell application \"Archive Utility\" to open \"Macintosh HD:path:to:Xcode_8.xip\"". It'll return right away though so you'll have to poll to see if the file exists or something to know when it actually completes. – JScott Sep 16 at 16:01
+show 5 more comments
+up vote
+7
+down vote
+I'm not sure why Archive Utility is having so much trouble with these archives, but as long as your download itself isn't corrupt, extracting the app bundle out manually works consistently for me. I'm on the 10.12 GM seed (16A320), by the way.
+
+The Xcode.app bundle is inside of a CPIO archive, which is xz'd and then packed into a v2 (i.e., Yosemite) PBZX stream (like the payloads in the Yosemite/Sierra install packages). That resulting stream is what's bundled with some metadata and then signed for distribution. Getting it out of all that mess isn't hard, but it takes a little bit of effort.
+
+(If you'd like to see what this looks like, here's a recording of me doing it just now, complete with file sizes and certificate SHA1 hashes.)
+
+Verify the signature and certificate chain that signed the archive.
+pkgutil --verbose --check-signature ./Xcode_8_GM_seed.xip
+Extract the PBZX stream from the archive.
+xar -xf ./Xcode_8_GM_seed.xip
+Obtain a PBZX v2 unpacker and... unpack the packed stuff.
+curl -O https://gist.githubusercontent.com/pudquick/ff412bcb29c9c1fa4b8d/raw/24b25538ea8df8d0634a2a6189aa581ccc6a5b4b/parse_pbzx2.py
+python parse_pbzx2.py Content
+Decompress the archive (there should only be one chunk, "part00").
+xz -d Content.part00.cpio.xz
+Unpack the CPIO archive as a privileged user (since the device frameworks have weird symlinks that make cpio complain otherwise, and it needs to be owned by root anyway) and move the resulting Xcode app bundle into /Applications.
+sudo cpio -idm < ./Content.part00.cpio
+sudo mv ./Xcode.app /Applications/

@@ -1,0 +1,5 @@
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+cd ~/Library/Preferences && sudo find com.apple.finder.plist* -exec rm {} \; && killall Finder

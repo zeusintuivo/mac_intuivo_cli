@@ -1,0 +1,25 @@
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+echo " "
+echo "Command: cd ~/VirtualBox\ VMs "
+. cd /Users/administrator/VirtualBox\ VMs
+echo " "
+echo "Command: VBoxManage list vms"
+echo " "
+VBoxManage list vms
+echo " "
+echo " "
+echo "Sample edit entry:"
+echo " "
+echo "  \"Win 7 64 Bit 4 RAM\""
+echo " "
+echo "Turn off machine of course. "
+echo "Go into directory: cd Win\ 7\ 64\ Bit\ 4\ RAM/"
+echo "Calculate Space: # Give 35 Megas (1024*35)=35840"
+echo " "
+echo "Run command to resize: VBoxManage modifyhd --resize 35840 Win\ 7\ 64\ Bit.vdi"
+echo " "
+echo "That's it. Now enjoy your new size box. Just start the VM again."
+echo " "
