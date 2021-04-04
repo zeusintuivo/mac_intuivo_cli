@@ -4,7 +4,7 @@
 #
 echo " "
 echo "Command: cd ~/VirtualBox\ VMs "
-. cd /Users/administrator/VirtualBox\ VMs
+. cd "${HOME}/VirtualBox VMs"
 echo " "
 echo "Command: VBoxManage list vms"
 echo " "
